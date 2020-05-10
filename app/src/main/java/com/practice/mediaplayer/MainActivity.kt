@@ -18,12 +18,15 @@ class MainActivity : AppCompatActivity() {
 
     var listSongs=ArrayList<SongInfo>()
     var adapter:MySongAdapter?=null
+    var mp:MediaPlayer?=null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         LoadURLOnline()
         adapter=MySongAdapter(listSongs)
         lvListSongs.adapter=adapter
+        var mytracking=mySongTrack()
+        mytracking.start()
 
 
 
@@ -45,15 +48,32 @@ class MainActivity : AppCompatActivity() {
         }
         override fun getView(postion: Int, p1: View?, p2: ViewGroup?): View {
             val myView= layoutInflater.inflate(R.layout.song_ticket,null)
-            val Song = this.myListSong[postion]
+            val Song= this.myListSong[postion]
             myView.tvSongName.text = Song.Title
             myView.tvAuthor.text = Song.AuthorName
-            myView.buPlay.setOnClickListener(View.OnClickListener {
 
-            })
+            myView.buPlay.setOnClickListener{
+                //TODO: play song
 
+                if(myView.buPlay.text == "Stop"){
+                    mp!!.stop()
+                    myView.buPlay.text = "Start"
+                }else {
+
+                    mp = MediaPlayer()
+                    try {
+                        mp!!.setDataSource(Song.SongURL)
+                        mp!!.prepare()
+                        mp!!.start()
+                        myView.buPlay.text = "Stop"
+                        sbProgress.max=mp!!.duration
+                    } catch (ex: Exception) {
+                    }
+                }
+            }
 
             return  myView
+            
 
         }
 
@@ -71,6 +91,26 @@ class MainActivity : AppCompatActivity() {
 
 
     }
+    inner  class  mySongTrack() :Thread(){
+
+
+        override fun run() {
+            while(true){
+                try{
+                    sleep(1000)
+                }catch (ex:Exception){}
+
+                runOnUiThread {
+
+                    if (mp!=null){
+                        sbProgress.progress = mp!!.currentPosition
+                    }
+                }
+            }
+
+        }
+    }
+
 
 
 
